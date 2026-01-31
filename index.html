@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Button</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3f3f3;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .whatsapp-btn {
+      background: linear-gradient(135deg, #25D366, #1ebe5d);
+      color: white;
+      padding: 14px 22px;
+      border-radius: 50px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(37, 211, 102, 0.45);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .whatsapp-btn i {
+      font-size: 22px;
+    }
+
+    .whatsapp-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 16px 35px rgba(37, 211, 102, 0.6);
+      filter: brightness(1.1);
+    }
+
+    .whatsapp-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <a class="whatsapp-btn" aria-label="Chat on WhatsApp" onclick="here()">
+    <i class="ri-whatsapp-line"></i>
+    <span>Click here Saroj</span>
+  </a>
+<script src="script.js"></script>
+</body>
+</html>
