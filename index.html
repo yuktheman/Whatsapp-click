@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StockMate – Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0f13;
+  --surface:#16181f;
+  --surface2:#1e2028;
+  --border:#2a2d38;
+  --accent-a:#4fc3f7;
+  --accent-m:#f9a825;
+  --text:#e8eaf0;
+  --muted:#6b7280;
+  --danger:#ef5350;
+  --success:#66bb6a;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;overflow:hidden}
+
+/* ── PAGES ── */
+.page{display:none;height:100vh;width:100vw;position:fixed;inset:0}
+.page.active{display:flex}
+
+/* ── SPLASH ── */
+#splash{flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:20px}
+.splash-logo{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;letter-spacing:-0.04em;color:var(--text)}
+.splash-logo span{color:var(--accent-a)}
+.splash-sub{font-size:12px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase}
+.splash-bar{width:180px;height:2px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px}
+.splash-fill{height:100%;width:0%;background:var(--accent-a);animation:load 2s ease forwards}
+@keyframes load{to{width:100%}}
+
+/* ── LOGIN ── */
+#login{flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:24px}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:360px}
+.login-box h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px}
+.login-box p{font-size:12px;color:var(--muted);margin-bottom:28px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-bottom:6px;text-transform:uppercase}
+.field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--accent-a)}
+.btn-main{width:100%;background:var(--accent-a);color:#0a0a0f;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;letter-spacing:0.04em;transition:opacity .2s}
+.btn-main:hover{opacity:.85}
+.login-err{display:none;font-size:12px;color:var(--danger);margin-top:12px;text-align:center}
+
+/* ── DASHBOARD ── */
+#dashboard{flex-direction:column;background:var(--bg)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface)}
+.topbar-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-0.02em}
+.topbar-logo span{color:var(--accent-a)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.user-pill{font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px}
+.btn-logout{font-size:11px;color:var(--danger);background:none;border:1px solid #3a2020;border-radius:20px;padding:5px 12px;cursor:pointer;font-family:inherit;transition:background .2s}
+.btn-logout:hover{background:#1e1414}
+.dash-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:20px}
+.dash-greeting{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;text-align:center;margin-bottom:8px}
+.dash-greeting span{color:var(--accent-a)}
+.dash-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:32px;letter-spacing:0.05em}
+.category-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:560px}
+.cat-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;transition:border-color .2s,transform .15s;position:relative;overflow:hidden}
+.cat-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s}
+.cat-card.acrylic::before{background:radial-gradient(circle at top left,rgba(79,195,247,.06),transparent 60%)}
+.cat-card.moulding::before{background:radial-gradient(circle at top left,rgba(249,168,37,.06),transparent 60%)}
+.cat-card:hover{transform:translateY(-2px)}
+.cat-card.acrylic:hover{border-color:var(--accent-a)}
+.cat-card.acrylic:hover::before{opacity:1}
+.cat-card.moulding:hover{border-color:var(--accent-m)}
+.cat-card.moulding:hover::before{opacity:1}
+.cat-icon{font-size:28px;margin-bottom:14px}
+.cat-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px}
+.cat-count{font-size:11px;color:var(--muted)}
+.cat-arrow{position:absolute;bottom:20px;right:20px;font-size:18px;color:var(--border);transition:color .2s,transform .2s}
+.cat-card:hover .cat-arrow{transform:translate(2px,-2px)}
+.cat-card.acrylic:hover .cat-arrow{color:var(--accent-a)}
+.cat-card.moulding:hover .cat-arrow{color:var(--accent-m)}
+.stats-row{display:flex;gap:12px;width:100%;max-width:560px}
+.stat-box{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+.stat-label{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:0.06em;text-transform:uppercase}
+
+/* ── STOCK PAGE ── */
+#acrylic-page,#moulding-page{flex-direction:column;background:var(--bg)}
+.page-header{display:flex;align-items:center;gap:16px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface)}
+.btn-back{background:none;border:1px solid var(--border);border-radius:8px;padding:7px 14px;color:var(--muted);font-size:12px;font-family:inherit;cursor:pointer;transition:border-color .2s,color .2s}
+.btn-back:hover{border-color:var(--text);color:var(--text)}
+.page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.page-title.a{color:var(--accent-a)}
+.page-title.m{color:var(--accent-m)}
+.page-badge{font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;color:var(--muted);margin-left:auto}
+
+.stock-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+
+/* ADD FORM */
+.add-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.add-form h3{font-size:13px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
+.form-row .field{margin:0}
+.btn-add{background:var(--accent-a);color:#0a0a0f;border:none;border-radius:8px;padding:11px 18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;transition:opacity .2s;height:40px}
+.btn-add:hover{opacity:.85}
+.btn-add.m{background:var(--accent-m)}
+
+/* SEARCH */
+.search-row{display:flex;gap:10px}
+.search-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent-a)}
+.btn-export{background:none;border:1px solid var(--border);border-radius:8px;padding:10px 16px;color:var(--muted);font-size:12px;font-family:inherit;cursor:pointer;transition:border-color .2s,color .2s}
+.btn-export:hover{border-color:var(--text);color:var(--text)}
+
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--surface2)}
+th{padding:11px 16px;font-size:11px;color:var(--muted);text-align:left;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--surface2)}
+.code-cell{font-weight:500;letter-spacing:0.05em}
+.qty-cell{display:flex;align-items:center;gap:8px}
+.qty-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:26px;height:26px;color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;font-family:inherit}
+.qty-btn:hover{background:var(--border)}
+.qty-val{min-width:36px;text-align:center;font-weight:500}
+.status-badge{font-size:10px;padding:3px 8px;border-radius:20px;letter-spacing:0.05em}
+.status-ok{background:#0d2a10;color:var(--success);border:1px solid #1a4a1d}
+.status-low{background:#2a1a08;color:#ffa726;border:1px solid #4a3010}
+.status-out{background:#2a0d0d;color:var(--danger);border:1px solid #4a1a1a}
+.btn-del{background:none;border:none;color:var(--border);font-size:16px;cursor:pointer;transition:color .2s;padding:4px}
+.btn-del:hover{color:var(--danger)}
+.empty-state{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.page.active{animation:fadeIn .25s ease}
+tr.new-row{animation:fadeIn .3s ease}
+</style>
+</head>
+<body>
+
+<!-- ════ SPLASH ════ -->
+<div class="page active" id="splash">
+  <div class="splash-logo">Stock<span>Mate</span></div>
+  <div class="splash-sub">Inventory Management System</div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+</div>
+
+<!-- ════ LOGIN ════ -->
+<div class="page" id="login">
+  <div class="login-box">
+    <h2>Employee Login</h2>
+    <p>Internal access only. Use your company credentials.</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="e.g. admin" autocomplete="username"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn-main" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="login-err">❌ Invalid username or password</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:16px;text-align:center">
+      Demo: username <b style="color:var(--text)">admin</b> / password <b style="color:var(--text)">1234</b>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DASHBOARD ════ -->
+<div class="page" id="dashboard">
+  <div class="topbar">
+    <div class="topbar-logo">Stock<span>Mate</span></div>
+    <div class="topbar-right">
+      <div class="user-pill" id="user-pill">admin</div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+  <div class="dash-body">
+    <div class="dash-greeting">Good day, <span id="dash-name">Admin</span> 👋</div>
+    <div class="dash-sub">SELECT A CATEGORY TO MANAGE STOCK</div>
+    <div class="category-grid">
+      <div class="cat-card acrylic" onclick="showPage('acrylic-page')">
+        <div class="cat-icon">🔷</div>
+        <div class="cat-name">Acrylic</div>
+        <div class="cat-count" id="a-count">0 items</div>
+        <div class="cat-arrow">↗</div>
+      </div>
+      <div class="cat-card moulding" onclick="showPage('moulding-page')">
+        <div class="cat-icon">🟧</div>
+        <div class="cat-name">Moulding</div>
+        <div class="cat-count" id="m-count">0 items</div>
+        <div class="cat-arrow">↗</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="total-items">0</div>
+        <div class="stat-label">Total Items</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="low-stock" style="color:#ffa726">0</div>
+        <div class="stat-label">Low Stock</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="out-stock" style="color:var(--danger)">0</div>
+        <div class="stat-label">Out of Stock</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ACRYLIC PAGE ════ -->
+<div class="page" id="acrylic-page">
+  <div class="page-header">
+    <button class="btn-back" onclick="showPage('dashboard')">← Back</button>
+    <div class="page-title a">🔷 Acrylic Stock</div>
+    <div class="page-badge" id="a-badge">0 items</div>
+  </div>
+  <div class="stock-body">
+    <!-- Add form -->
+    <div class="add-form">
+      <h3>Add New Item</h3>
+      <div class="form-row">
+        <div class="field">
+          <label>Product Code</label>
+          <input type="text" id="a-code" placeholder="e.g. KA001" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%" />
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input type="number" id="a-qty" placeholder="0" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%" />
+        </div>
+        <button class="btn-add" onclick="addItem('a')">+ Add</button>
+      </div>
+    </div>
+    <!-- Search -->
+    <div class="search-row">
+      <input class="search-input" type="text" id="a-search" placeholder="Search by code..." oninput="renderTable('a')"/>
+      <button class="btn-export" onclick="exportCSV('a')">⬇ Export CSV</button>
+    </div>
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Product Code</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="a-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MOULDING PAGE ════ -->
+<div class="page" id="moulding-page">
+  <div class="page-header">
+    <button class="btn-back" onclick="showPage('dashboard')">← Back</button>
+    <div class="page-title m">🟧 Moulding Stock</div>
+    <div class="page-badge" id="m-badge">0 items</div>
+  </div>
+  <div class="stock-body">
+    <div class="add-form">
+      <h3>Add New Item</h3>
+      <div class="form-row">
+        <div class="field">
+          <label>Product Code</label>
+          <input type="text" id="m-code" placeholder="e.g. KM001" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%" />
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input type="number" id="m-qty" placeholder="0" min="0" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:100%" />
+        </div>
+        <button class="btn-add m" onclick="addItem('m')">+ Add</button>
+      </div>
+    </div>
+    <div class="search-row">
+      <input class="search-input" type="text" id="m-search" placeholder="Search by code..." oninput="renderTable('m')"/>
+      <button class="btn-export" onclick="exportCSV('m')">⬇ Export CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Product Code</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Last Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="m-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+const USERS = { admin: '1234', manager: 'pass123' };
+let currentUser = null;
+
+// Stock data stored in localStorage so it persists across reloads
+function loadStock(cat) {
+  try { return JSON.parse(localStorage.getItem('stock_' + cat)) || []; }
+  catch { return []; }
+}
+function saveStock(cat, data) {
+  localStorage.setItem('stock_' + cat, JSON.stringify(data));
+}
+
+// ── PAGE NAVIGATION ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'dashboard') updateDashStats();
+  if (id === 'acrylic-page') renderTable('a');
+  if (id === 'moulding-page') renderTable('m');
+}
+
+// ── SPLASH → LOGIN ──
+setTimeout(() => showPage('login'), 2200);
+
+// ── LOGIN ──
+function doLogin() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  if (USERS[u] && USERS[u] === p) {
+    currentUser = u;
+    document.getElementById('user-pill').textContent = u;
+    document.getElementById('dash-name').textContent = u.charAt(0).toUpperCase() + u.slice(1);
+    document.getElementById('login-err').style.display = 'none';
+    showPage('dashboard');
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+document.getElementById('password').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// ── LOGOUT ──
+function doLogout() {
+  currentUser = null;
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  showPage('login');
+}
+
+// ── STATUS HELPER ──
+function getStatus(qty) {
+  if (qty <= 0) return ['Out of Stock', 'status-out'];
+  if (qty <= 10) return ['Low Stock', 'status-low'];
+  return ['In Stock', 'status-ok'];
+}
+
+function fmtDate() {
+  return new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+}
+
+// ── ADD ITEM ──
+function addItem(cat) {
+  const codeEl = document.getElementById(cat + '-code');
+  const qtyEl  = document.getElementById(cat + '-qty');
+  const code   = codeEl.value.trim().toUpperCase();
+  const qty    = parseInt(qtyEl.value);
+  if (!code) return alert('Please enter a product code.');
+  if (isNaN(qty) || qty < 0) return alert('Please enter a valid quantity.');
+  const stock = loadStock(cat);
+  if (stock.find(i => i.code === code)) return alert('Code ' + code + ' already exists.');
+  stock.push({ code, qty, date: fmtDate() });
+  saveStock(cat, stock);
+  codeEl.value = ''; qtyEl.value = '';
+  renderTable(cat);
+  updateDashStats();
+}
+
+// ── CHANGE QUANTITY ──
+function changeQty(cat, code, delta) {
+  const stock = loadStock(cat);
+  const item = stock.find(i => i.code === code);
+  if (!item) return;
+  item.qty = Math.max(0, item.qty + delta);
+  item.date = fmtDate();
+  saveStock(cat, stock);
+  renderTable(cat);
+  updateDashStats();
+}
+
+// ── DELETE ITEM ──
+function deleteItem(cat, code) {
+  if (!confirm('Delete ' + code + '?')) return;
+  let stock = loadStock(cat);
+  stock = stock.filter(i => i.code !== code);
+  saveStock(cat, stock);
+  renderTable(cat);
+  updateDashStats();
+}
+
+// ── RENDER TABLE ──
+function renderTable(cat) {
+  const stock = loadStock(cat);
+  const query = (document.getElementById(cat + '-search').value || '').toUpperCase();
+  const filtered = stock.filter(i => i.code.includes(query));
+  const tbody = document.getElementById(cat + '-tbody');
+  const badge = document.getElementById(cat + '-badge');
+  badge.textContent = stock.length + ' item' + (stock.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No items found. Add one above ↑</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((item, idx) => {
+    const [label, cls] = getStatus(item.qty);
+    return `<tr class="${idx === 0 && !query ? 'new-row' : ''}">
+      <td style="color:var(--muted)">${idx + 1}</td>
+      <td class="code-cell">${item.code}</td>
+      <td>
+        <div class="qty-cell">
+          <button class="qty-btn" onclick="changeQty('${cat}','${item.code}',-1)">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${cat}','${item.code}',1)">+</button>
+        </div>
+      </td>
+      <td><span class="status-badge ${cls}">${label}</span></td>
+      <td style="color:var(--muted);font-size:12px">${item.date}</td>
+      <td><button class="btn-del" onclick="deleteItem('${cat}','${item.code}')" title="Delete">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── DASHBOARD STATS ──
+function updateDashStats() {
+  const all = [...loadStock('a'), ...loadStock('m')];
+  document.getElementById('total-items').textContent = all.length;
+  document.getElementById('low-stock').textContent = all.filter(i => i.qty > 0 && i.qty <= 10).length;
+  document.getElementById('out-stock').textContent = all.filter(i => i.qty <= 0).length;
+  document.getElementById('a-count').textContent = loadStock('a').length + ' items';
+  document.getElementById('m-count').textContent = loadStock('m').length + ' items';
+}
+
+// ── EXPORT CSV ──
+function exportCSV(cat) {
+  const stock = loadStock(cat);
+  if (!stock.length) return alert('No data to export.');
+  const name = cat === 'a' ? 'Acrylic' : 'Moulding';
+  const rows = [['Product Code','Quantity','Status','Last Updated'],
+    ...stock.map(i => [i.code, i.qty, getStatus(i.qty)[0], i.date])];
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = name + '_Stock_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// init stats
+updateDashStats();
+</script>
+</body>
+</html>
